@@ -1,0 +1,273 @@
+Utilizei a compilação da INTALIO do Zimbra 10 e a Ferramenta de migração Z2Z.
+
+Servidor Ubuntu 20.04
+
+Apos instalar e configurar o Servidor com o Ubuntu 20.04 ->
+
+Alterar arquivo hosts:
+
+# vim /etc/hosts
+
+127.0.0.1 localhost
+
+127.0.1.1 SEU-HOSTNAME
+
+IP_DO_SERVIDOR seudominio.com.br 
+
+
+
+2. Alterar hostname da maquina:
+
+Para facilitar, o novo server deve possuir o mesmo FQDN
+
+hostnamectl set-hostname mail.domain.com
+
+
+
+3. Baixar aplicação ZIMBRA 10 compilada:
+
+wget https://files.zintalio.com/zcs-10.0.0_FOSS_intalio.UBUNTU20_64.tar.gz
+
+
+
+4. Descompactar arquivo:
+
+tar -zxvf <arquivo>
+
+4.1 Entrar no diretório descompactado
+
+
+
+5. Executar install:
+
+./install.sh
+
+Passos durante a instalação---------------------------------------------------------------------------------------------------------------------------------------------------------
+
+Do you agree with the terms of the software license agreement? [N]Y
+
+Use Zimbra's package repository [Y] Y
+
+Install zimbra-ldap [Y] Y
+
+Install zimbra-logger [Y] Y
+
+Install zimbra-mta [Y] Y
+
+Install zimbra-dnscache [Y] N
+
+Install zimbra-snmp [Y] Y
+
+Install zimbra-store [Y] Y
+
+Install zimbra-apache [Y] Y
+
+Install zimbra-spell [Y] N
+
+Install zimbra-memcached [Y] Y
+
+Install zimbra-proxy [Y] Y
+
+....
+
+The system will be modified. Continue? [N] Y
+
+
+
+DNS ERROR resolving MX for dominio.com.br
+
+It is suggested that the domain name have an MX record configured in DNS
+
+Change domain name? [Yes] N 
+
+(Se deseja alterar o nome de dominio escolha Y)
+
+...
+
+Agora vamos definir a senha do user admin, escolha a opção numero 6:
+
+Address unconfigured (**) items (? - help) 6 
+
+Defina a senha do user admin
+
+...
+
+Select, or 'r' for previous menu [r] 4
+
+...
+
+Select, or 'r' for previous menu [r] r
+
+** Retornar para o menu apos definir o admin password
+
+...
+
+Select from menu, or press 'a' to apply config (? - help) a
+
+** Selecione "a" para aplicar as alterações
+
+
+
+Save configuration data to a file? [Yes] Y
+
+-> Enter
+
+The system will be modified - continue? [No] Y
+
+Notify Zimbra of your installation? [Yes] no
+
+
+
+Se tudo ocorreu bem execute:
+
+# su - zimbra 
+
+# zmcontrol status
+
+(Você verá todos os serviços em execução no servidor)
+
+***********************************************************************************
+
+Iniciando o processo de migração das contas de e-mail e caixas postais entre os servidores com Z2Z.
+1. Baixar ferramenta de migração Z2Z no servidor "antigo" de origem onde possuem as contas de Email.
+
+https://github.com/BktechBrazil/Z2Z/blob/master/INSTALL - Projeto Z2Z
+
+# wget https://github.com/BktechBrazil/Z2Z/archive/refs/heads/master.zip
+
+Descompactar:
+
+#unzip master.zip
+
+1.1 Alterar o dono da pasta onde está o diretório Z2Z:
+
+# chown -R zimbra:zimbra migration/ 
+
+Alterar permissão desta mesma pasta
+
+#chmod -R 777 migration/
+
+
+
+2. Entrar no diretorio Z2Z-master:
+
+Permissão de execução no .sh
+
+#chmod +x z2z.sh 
+
+
+
+3. Logar com usuário zimbra:
+
+# su - zimbra
+
+4. Executar script z2z.sh -> !!! Deve ser executado com usuário zimbra !!!
+
+OK: Executando como Zimbra.
+
+'++++++++++++++++++++++++++++++++++++++++
+
+Continuar (sim/nao)? sim
+
+5. O Hostname do servidor do Zimbra sera alterado (sim/nao)? nao
+
+(No meu caso não será necessário alterar pois deixei os 2 servidores com o mesmo hostname)
+
+6. Deseja exportar as caixas postais (sim/nao)? sim
+
+7. Informe qual sera o diretorio utilizado para exportacao:
+
+/home/migration
+
+***Escolha o diretório que desejar, todo o processo de importação e exportação utilizará este diretório.
+
+O programa irá criar os scripts necessários para migração no diretório informado.
+
+Diretorio informado:
+
+''/home/migration
+
+''INBOX: Criando arquivo com as contas relacionadas para exportacao:
+
+''/home/migration/Z2Z-master/export/script_export_FULL.sh
+
+'++++++++++++++++++++++++++++++++++++++++
+
+'LIXEIRA: Criando arquivo com as contas relacionadas para exportacao:
+
+''/home/migration/Z2Z-master/export/script_export_TRASH.sh
+
+'++++++++++++++++++++++++++++++++++++++++
+
+'SPAM: Criando arquivo com as contas relacionadas para exportacao:
+
+''/home/migration/Z2Z-master/export/script_export_JUNK.sh
+
+8. Agora envie para o servidor de destino (NOVO) todo o diretório "export"
+
+#scp -r export/ root@IP-DE-DESTINO:/DIRETORIO
+
+Acessando o servidor de destino (NOVO)
+1. Alterar o dono da pasta onde está o diretório export:
+
+# chown -R zimbra:zimbra DIRETORIO/ 
+
+Alterar permissão desta mesma pasta:
+
+#chmod -R 777 DIRETORIO/
+
+2. Logar com usuário zimbra
+
+# su - zimbra
+
+3. Execute-> importar_ldap.sh
+
+Essa versao NAO cria ou importa os dominios, somente continue se ja tiver criado os dominios do ambiente
+
+Registro da sessao: registro-08_Jul_2024-18-18.log
+
+Deseja iniciar a importacao das CLASSES DE SERVICO, CONTAS, NOMES ALTERNATIVOS E LISTAS E DISTRIBUICAO (sim/nao)? sim
+
+Deseja importar o usuario ADMIN (sim/nao)?sim
+
+Removendo ADMIN: uid=admin,ou=people,dc=carbonio,dc=defensoria,dc=ce,dc=def,dc=br
+
+Removendo classes de servico padrao: Default e DefaultExternal
+
+Importando classes de servico
+
+Importando contas
+
+importando nomes alternativos
+
+importando listas de distribuicao
+
+Retorne ao servidor de Origem (Antigo)
+Acesse o diretório export:
+
+Agora vamos gerar os arquivos contendo todos os e-mails dos servidor.
+
+1. Execute o script:
+
+#./script_export_FULL.sh
+
+Será criado vários arquivos .tgz das contas presentes neste servidor.
+
+Estes arquivos serão criados no diretório definido anteriormente na primeira execução do script.
+
+2. Copiar todos os arquivos .tgz para o servidor de destino
+
+Obs: Antes de executar o script de importação, todos os arquivos .tgz devem estar com as permissões de leitura e execução.
+
+3. Executar o script -> script_importar_full.sh
+
+Obs: Os diretórios de oriem e destino devem ser iguais.
+
+No caso do restore ele vai buscar os arquivos .tgz no mesmo local que foi definido na origem.
+
+
+
+Dica: No momento da importação pode ser interessante usar as dicas deste artigo do grande Anahuac.
+
+https://www.anahuac.eu/zimbra-to-carbonio-z2c/
+
